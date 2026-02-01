@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
+<title>Consolidation App — Paramètres métiers</title>
+<meta content="WMS — consolidation, remise, transfert. Paramètres métiers en onglets." name="description"/>
+<style>
+:root{
+  --bg:#F4F6F8;
+  --card:#FFFFFF;
+  --primary:#0b76d1;
+  --accent:#0f62fe;
+  --muted:#6b7280;
+  --text:#0f1724;
+  --border:#E6EBF0;
+  --radius:10px;
+  --pad:10px;
+  --shadow: 0 6px 20px rgba(4,12,24,0.06);
+  --compact-gap:8px;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;color:var(--text);background:var(--bg)}
+.app{min-height:100vh;display:flex;flex-direction:column}
+
+/* Header */
+.header{position:sticky;top:0;background:linear-gradient(90deg,var(--primary),var(--accent));color:#fff;padding:10px 12px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);z-index:40}
+.header .left,.header .right{width:40px;display:flex;align-items:center;justify-content:center}
+.header .center{flex:1;text-align:center}
+.header-title{margin:0;font-weight:700;font-size:16px}
+
+/* main */
+main{flex:1;overflow:auto;padding:12px 14px 96px}
+
+/* card */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:12px;box-shadow:var(--shadow)}
+.card h2{margin:0 0 8px 0;font-size:15px}
+.small{font-size:13px;color:var(--muted)}
+
+/* grid */
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:850px){.grid{grid-template-columns:repeat(3,1fr)}}
+
+/* tiles */
+.tile{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer}
+.tile .emoji{font-size:20px}
+.tile:hover{transform:translateY(-2px);transition:transform .12s}
+
+/* forms */
+.row{display:flex;gap:10px;align-items:center}
+.col{display:flex;flex-direction:column;gap:8px}
+.input,select,textarea{padding:8px;border-radius:8px;border:1px solid var(--border);background:#fff;font-size:14px;width:100%}
+.small-input{padding:7px;border-radius:7px;border:1px solid var(--border);font-size:13px}
+
+/* compact table */
+table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}
+th,td{padding:8px;border-bottom:1px solid var(--border);text-align:left}
+thead th{font-weight:700}
+
+/* bottom nav */
+.bottom-nav{position:fixed;left:12px;right:12px;bottom:12px;background:rgba(255,255,255,0.98);border-radius:14px;padding:8px;display:flex;gap:8px;justify-content:space-between;border:1px solid var(--border);box-shadow:0 8px 30px rgba(4,12,24,0.08);z-index:60}
+.nav-btn{flex:1;min-width:0;padding:8px;border-radius:10px;border:0;background:transparent;color:var(--muted);display:flex;flex-direction:column;align-items:center;font-size:12px}
+.nav-btn.active{color:var(--primary);font-weight:700}
+
+/* tabs */
+.tabs{display:flex;gap:8px;margin-bottom:10px}
+.tab{padding:8px 10px;border-radius:8px;background:#fff;border:1px solid var(--border);cursor:pointer;font-weight:600}
+.tab.active{background:linear-gradient(90deg,var(--primary),var(--accent));color:#fff;border-color:transparent}
+
+/* footer small */
+.footer-small{font-size:12px;color:var(--muted);text-align:center;margin-top:6px}
+
+/* toast */
+#toastRoot{position:fixed;right:14px;bottom:110px;z-index:80;display:flex;flex-direction:column;gap:8px}
+.toast{background:#fff;padding:8px 10px;border-radius:8px;border:1px solid var(--border);box-shadow:var(--shadow);font-size:13px}
+.toast.success{border-color:rgba(22,163,74,0.12)} .toast.error{border-color:rgba(220,38,38,0.12)}
+
+/* item detail overlay */
+#itemDetailOverlay{position:fixed;inset:0;background:rgba(15,23,42,0.45);display:none;align-items:flex-end;justify-content:center;z-index:70}
+#itemDetailCard{background:#fff;width:100%;max-width:480px;border-radius:16px 16px 0 0;padding:14px 16px 18px;box-shadow:0 -10px 30px rgba(15,23,42,0.35);}
+#itemDetailHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+#itemDetailTitle{font-size:15px;font-weight:700}
+#itemDetailClose{border:0;background:transparent;font-size:18px;cursor:pointer}
+#itemDetailBody{font-size:13px;color:#111827;max-height:55vh;overflow:auto}
+#itemDetailBody table{font-size:12px}
+#itemDetailTags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.badge{padding:2px 6px;border-radius:999px;border:1px solid var(--border);font-size:11px;color:var(--muted)}
+
+/* Accordion */
+.accordion{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:8px}
+.acc-header{background:#f8fafc;padding:8px 10px;font-weight:700;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.acc-body{display:none;padding:10px;background:#fff}
+.acc-header span{font-size:12px;color:var(--muted)}
+.acc-header.open{background:linear-gradient(90deg,var(--primary),var(--accent));color:#fff}
+
+
+.nav-btn.disabled{opacity:0.45;pointer-events:none}
+.tile.disabled{opacity:0.45;pointer-events:none}
+
+
+@media (max-width:600px){
+  .bottom-nav{gap:4px;}
+  .nav-btn{padding:10px 4px;border-radius:12px;}
+  .nav-btn span:nth-child(2){font-size:11px;}
+  .tab{padding:10px 14px;}
+  .input{font-size:16px;}
+  button{min-height:40px;}
+}
+
+
+/* Hide labels on bottom nav */
+.bottom-nav .nav-btn {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.footer-small{display:none;}
+#page-settings .footer-small{display:block;}
+</style>
+</head>
+<body>
+
+<div id="probeBar" style="position:fixed;left:10px;right:10px;top:8px;z-index:9999;display:flex;gap:8px;align-items:center;justify-content:space-between;background:#111827;color:#fff;padding:8px 10px;border-radius:14px;font-size:12px;box-shadow:0 8px 24px rgba(0,0,0,0.25)">
+  <div>
+    <div><b>Probe</b> <span id="probeJs">JS…</span> • clicks:<span id="probeClicks">0</span> • touch:<span id="probeTouch">0</span></div>
+    <div style="opacity:0.85">showPage: <span id="probeShowPage">?</span> • mode: <span id="probeMode">?</span></div>
+  </div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+    <button id="probeGoScan" style="border:0;border-radius:10px;padding:6px 10px;background:#0f62fe;color:#fff;font-weight:700">Scan</button>
+    <button id="probeGoSettings" style="border:0;border-radius:10px;padding:6px 10px;background:#0b76d1;color:#fff;font-weight:700">Param</button>
+    <button id="probeGoInv" style="border:0;border-radius:10px;padding:6px 10px;background:#16a34a;color:#fff;font-weight:700">Inv</button>
+  </div>
+</div>
+<div id="errorBox" style="position:fixed;left:10px;right:10px;bottom:90px;z-index:9999;background:#fff;border:1px solid #fecaca;color:#991b1b;padding:10px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.15);display:none;max-height:35vh;overflow:auto;font-size:12px"></div>
+
+<div class="app">
+<header class="header" role="banner">
+<div class="left"><button aria-label="Retour" id="backButton" style="padding:6px 8px;border-radius:8px;border:0;background:transparent;color:#fff;font-weight:700" type="button">←</button></div>
+<div class="center"><h1 class="header-title" id="pageTitle">Consolidation — Pro</h1></div>
+<div class="right">
+<select aria-label="Mode d'utilisation" class="small-input" id="modeSwitch" style="background:transparent;border:1px solid rgba(255,255,255,0.12);color:#fff">
+<option value="manager">Manager</option>
+<option value="terrain">Terrain</option>
+</select>
+</div>
+</header>
+<main id="main">
+<!-- HOME -->
+<section class="page" data-title="Accueil" id="page-home">
+<div class="card">
+<div class="row" style="justify-content:space-between;align-items:center">
+<div><div style="font-weight:700">Bienvenue — Application WMS</div><div class="small">Mode Pro — Paramètres métiers disponibles</div></div>
+<div class="small">© 2026 — Complément</div>
+</div>
+</div>
+<div class="grid">
+<div class="tile" data-page="scan" onclick="try{window.showPage('scan')}catch(e){}"><div class="emoji">🏷️</div><div>Scan</div></div>
+<div class="tile" data-page="pick" onclick="try{window.showPage('pick')}catch(e){}"><div class="emoji">📋</div><div>Remise</div></div>
+<div class="tile" data-page="consolider" onclick="try{window.showPage('consolider')}catch(e){}"><div class="emoji">🧱</div><div>Consolider</div></div>
+<div class="tile" data-page="transfer" onclick="try{window.showPage('transfer')}catch(e){}"><div class="emoji">🌀</div><div>Transfert</div></div>
+<div class="tile" data-page="pallet" onclick="try{window.showPage('pallet')}catch(e){}"><div class="emoji">🧊</div><div>Palettes</div></div>
+<div class="tile" data-page="inventaire" onclick="try{window.showPage('inventaire')}catch(e){}"><div class="emoji">📦</div><div>Inventaire</div></div>
+<div class="tile" data-page="settings" onclick="try{window.showPage('settings')}catch(e){}"><div class="emoji">⚙️</div><div>Paramètres</div></div>
+</div>
+<div class="card" style="margin-top:12px">
+<h2>Etat rapide</h2>
+<div class="row" style="justify-content:space-between">
+<div><div class="small">Tâches consolidation</div><div id="quickTasks" style="font-weight:700">0</div></div>
+<div><div class="small">Palettes actives</div><div id="quickPalettes" style="font-weight:700">0</div></div>
+<div><div class="small">Bins référencés</div><div id="quickBins" style="font-weight:700">0</div></div>
+</div>
+</div>
+</section>
+<!-- SCAN -->
+<section class="page" data-title="Scan" id="page-scan" style="display:none">
+<div class="card">
+<h2>Scan</h2>
+<div class="col">
+<div class="row">
+<input class="input" id="scanInputItem" placeholder="Scanner ou entrer code ITEM"/>
+<button class="tab" id="btnValidateItem">Valider</button>
+</div>
+<div class="row" style="margin-top:8px">
+<input class="input" id="scanInputBin" placeholder="Scanner ou entrer BIN"/>
+<button class="tab" id="btnValidateBin">Valider</button>
+</div>
+<div class="small" style="margin-top:8px">Dernière lecture: <span class="small" id="lastScan">—</span></div>
+</div>
+</div>
+<div class="card">
+<h2>Caméra (démo)</h2>
+<div class="small">Démo: clic sur la vidéo pour simuler un scan</div>
+<div class="row" style="margin-top:8px">
+<button class="tab" id="btnOpenCamera">Ouvrir Caméra</button>
+<button class="tab" id="btnCloseCamera">Fermer</button>
+</div>
+<div id="cameraZone" style="margin-top:10px;display:none">
+<video id="cameraVideo" style="width:100%;height:180px;border-radius:8px;background:#000"></video>
+<div class="small" id="scanCameraStatus" style="margin-top:6px"></div>
+</div>
+</div>
+</section>
+<!-- PICK -->
+<section class="page" data-title="Remise" id="page-pick" style="display:none">
+<div class="card">
+<h2>Remise en stock</h2>
+<div class="row">
+<input class="input" id="remiseScanInput" placeholder="ITEM [location]"/>
+<button class="tab" id="btnRemiseAdd">Ajouter</button>
+</div>
+<div class="accordion">
+<div class="acc-header">ℹ️ Info Remise <span>tap pour ouvrir</span></div>
+<div class="acc-body small">
+        Scanner ITEM puis BIN. Utilise le mode incrémental ou agrégat selon ton flux terrain.
+      </div>
+</div>
+<div class="accordion">
+<div class="acc-header">📜 Règles Remise <span>tap pour ouvrir</span></div>
+<div class="acc-body small">
+        • Ne jamais mélanger deux items dans la même bin<br/>
+        • Respecter la capacité du type de bin<br/>
+        • Prioriser bins proches pour limiter déplacements
+      </div>
+</div>
+<div style="margin-top:10px">
+<table class="scan-info-table" id="remiseTable" style="display:none">
+<thead><tr><th>Location</th><th>Item</th><th>Qty</th></tr></thead><tbody></tbody>
+</table>
+<p class="small" id="remiseEmptyMsg" style="text-align:center;margin:8px 0">Aucun item scanné</p>
+</div>
+<div class="row" style="margin-top:8px"><button class="tab" id="remiseExportExcel">Exporter CSV</button><button class="tab" id="remiseExportPdf">Exporter PDF</button></div>
+</div>
+<div class="card">
+<h2>Paramètres rapides (Remise)</h2>
+<div class="grid">
+<label class="small">Mode remise
+            <select class="input" id="remiseMode">
+<option value="incremental">Incrémental (1 scan = +1)</option>
+<option value="aggregate">Agrégation automatique</option>
+</select>
+</label>
+<label class="small">Destination par défaut
+            <input class="input" id="remiseDefaultLocation" placeholder="Ex: L3A02"/>
+</label>
+<label class="small">Validation automatique
+            <select class="input" id="remiseAutoValidate"><option value="1">Oui</option><option value="0">Non</option></select>
+</label>
+<div></div>
+</div>
+</div>
+</section>
+<!-- CONSOLIDER -->
+<section class="page" data-title="Consolider" id="page-consolider" style="display:none">
+<div class="card">
+<h2>Diagnostic consolidation</h2>
+<div class="small">Règles appliquées: <span class="small" id="appliedRules">—</span></div>
+<div class="accordion">
+<div class="acc-header">ℹ️ Info Consolidation <span>tap pour ouvrir</span></div>
+<div class="acc-body small">
+        La simulation analyse l’inventaire et propose des déplacements optimaux.
+      </div>
+</div>
+<div class="accordion">
+<div class="acc-header">📜 Règles de Consolidation <span>tap pour ouvrir</span></div>
+<div class="acc-body small">
+        • Un item par bin<br/>
+        • Ne jamais dépasser la capacité P1–P7<br/>
+        • Prioriser les bins principales (plus grande qty)
+      </div>
+</div>
+<div class="row" style="margin-top:8px"><button class="tab" id="btnRunConso">Lancer simulation</button><button class="tab" id="btnClearConso">Réinitialiser</button></div>
+<div class="small" id="consoSummary" style="margin-top:10px">Aucun calcul.</div>
+</div>
+<div class="card">
+<h2>Déplacements recommandés</h2>
+<table class="scan-info-table" id="moveExportTable">
+<thead><tr><th>Item</th><th>Bin source</th><th>Bin cible</th><th>Qty</th><th>Note</th></tr></thead>
+<tbody><tr><td class="small muted" colspan="5" style="text-align:center">Aucun déplacement recommandé.</td></tr></tbody>
+</table>
+<div class="row" style="margin-top:8px"><button class="tab" id="btnLocExcel">Export CSV</button><button class="tab" id="btnLocPdf">Export PDF</button></div>
+</div>
+<div class="card">
+<h2>Exceptions / Interventions</h2>
+<table class="scan-info-table" id="exceptionsTable"><thead><tr><th>Type</th><th>Détail</th><th>Action</th></tr></thead><tbody><tr><td class="small muted" colspan="3" style="text-align:center">Aucune exception.</td></tr></tbody></table>
+<div class="row" style="margin-top:8px"><button class="tab" id="btnExportExceptions">Exporter</button><button class="tab" id="btnClearExceptions">Marquer résolues</button></div>
+</div>
+</section>
+<!-- TRANSFER -->
+<section class="page" data-title="Transfert" id="page-transfer" style="display:none">
+<div class="card">
+<h2>Transfert &amp; Construction palette</h2>
+<div class="small">Palette en cours: <strong><span id="transfertCurrentPaletteId">TRF000001</span></strong></div>
+<div class="accordion">
+<div class="acc-header">ℹ️ Info Transfert <span>tap pour ouvrir</span></div>
+<div class="acc-body small">
+        Les palettes regroupent plusieurs commandes pour un même transporteur.
+      </div>
+</div>
+<div class="accordion">
+<div class="acc-header">📜 Règles Transfert <span>tap pour ouvrir</span></div>
+<div class="acc-body small">
+        • Respecter le max commandes / palette<br/>
+        • Toujours archiver avant expédition<br/>
+        • Vérifier le transporteur par défaut
+      </div>
+</div>
+<div class="row" style="margin-top:8px"><input class="input" id="transfertPoInput" placeholder="Numéro de commande"/><button class="tab" id="btnAddPoTransfert">Ajouter</button></div>
+<table class="scan-info-table" id="transfertPoCurrentTable" style="margin-top:8px"><thead><tr><th>#</th><th>Commande</th></tr></thead><tbody><tr><td class="small muted" colspan="2" style="text-align:center">Aucune commande.</td></tr></tbody></table>
+<div style="margin-top:8px;text-align:right"><button class="tab" id="btnArchivePalette">Archiver palette</button></div>
+</div>
+<div class="card">
+<h2>Exports transfert</h2>
+<div class="row"><button class="tab" id="btnTransfertPalettePdf">Export palette PDF</button><button class="tab" id="btnTransfertItemsExcel">Export items CSV</button></div>
+</div>
+</section>
+<!-- PALLET -->
+<section class="page" data-title="Palettes" id="page-pallet" style="display:none">
+<div class="card">
+<h2>Historique palettes</h2>
+<table class="scan-info-table" id="histPaletteTable"><thead><tr><th>ID</th><th>Statut</th><th>Date / heure</th><th>Action</th></tr></thead><tbody><tr><td class="small muted" colspan="4" style="text-align:center">Aucune palette archivée.</td></tr></tbody></table>
+</div>
+<div class="card" style="margin-top:8px">
+<h2>Commandes par palette</h2>
+<table class="scan-info-table" id="histPoTable"><thead><tr><th>ID palette</th><th>Commande</th></tr></thead><tbody><tr><td class="small muted" colspan="2" style="text-align:center">Aucune commande archivée.</td></tr></tbody></table>
+</div>
+</section>
+<!-- INVENTAIRE -->
+<section class="page" data-title="Inventaire" id="page-inventaire" style="display:none">
+<div class="card">
+<h2>Inventaire</h2>
+<div class="small">Source : dernier CSV importé (bouton "Importer inventaire" dans Paramètres → Import / Data).</div>
+<div class="row" style="margin-top:8px">
+<input class="input" id="inventorySearch" placeholder="Rechercher (item, description, bin)"/>
+</div>
+<div class="row" style="margin-top:8px">
+<input class="input" id="inventoryBinFilter" placeholder="Filtre bin (ex: L2A)" style="max-width:140px"/>
+<label class="small" style="display:flex;align-items:center;gap:6px">
+<input id="inventoryQtyOnly" style="width:auto" type="checkbox"/> Qty &gt; 0
+          </label>
+</div>
+</div>
+<div class="card">
+<div class="row" style="justify-content:space-between;align-items:center">
+<div class="small">Lignes visibles : <span id="inventoryCount">0</span></div>
+<div class="small">Page <span id="inventoryPage">1</span></div>
+</div>
+<table class="scan-info-table" id="inventoryTable" style="margin-top:8px">
+<thead>
+<tr>
+<th>Item</th>
+<th>Description</th>
+<th>Bin</th>
+<th>Qty</th>
+</tr>
+</thead>
+<tbody>
+<tr><td class="small muted" colspan="4" style="text-align:center">Aucune donnée importée.</td></tr>
+</tbody>
+</table>
+<div class="row" style="margin-top:8px;justify-content:space-between">
+<button class="tab" id="inventoryPrev">◀</button>
+<button class="tab" id="inventoryNext">▶</button>
+</div>
+</div>
+</section>
+<!-- SETTINGS with tabs -->
+<section class="page" data-title="Paramètres" id="page-settings" style="display:none">
+<div class="card">
+<h2>Paramètres</h2>
+<div class="tabs" id="settingsTabs" style="overflow-x:auto;display:flex;gap:6px;margin-bottom:12px;white-space:nowrap;padding-bottom:4px;">
+<div class="tab active" data-tab="general">Général</div>
+<div class="tab" data-tab="consolidation">Consolidation</div>
+<div class="tab" data-tab="remise">Remise</div>
+<div class="tab" data-tab="transfert">Transfert</div>
+<div class="tab" data-tab="imports">Imports</div>
+<div class="tab" data-tab="journal">Journal</div>
+</div>
+<div id="tabPanels">
+<div class="tabPanel" data-panel="general">
+<div class="col" style="gap:10px">
+<label class="small">Mode
+          <select class="input" id="setting_mode">
+<option value="manager">Manager</option>
+<option value="terrain">Terrain</option>
+</select>
+</label>
+<label class="small">Site
+          <select class="input" id="setting_site">
+<option>Laval2</option><option>Langelier</option><option>Laval</option>
+</select>
+</label>
+<label class="small">Transporteur
+          <select class="input" id="setting_carrier">
+<option>Aucun</option><option>Loomis</option><option>Midland</option>
+</select>
+</label>
+<label class="small">Préfixe palette
+          <input class="input" id="setting_prefix" placeholder="Ex: TRF"/>
+</label>
+<label class="small">Commandes max/palette
+          <input class="input" id="setting_max_orders" max="50" min="1" placeholder="8" type="number"/>
+</label>
+</div>
+</div>
+<div class="tabPanel" data-panel="consolidation" style="display:none">
+<div class="col" style="gap:10px">
+<label class="small">Stratégie
+          <select class="input" id="settingConsolStrategy">
+<option value="main-bin">Main bin</option>
+<option value="capacity-fill">Capacity fill</option>
+</select>
+</label>
+<label class="small">Mode application
+          <select class="input" id="settingEnforcement">
+<option value="souple">Souple</option>
+<option value="strict">Strict</option>
+</select>
+</label>
+<label class="small">Seuil ventes - Haute
+          <input class="input" id="settingSalesHigh" placeholder="&gt;50" type="number">
+</input></label>
+<label class="small">Seuil ventes - Moyenne
+          <input class="input" id="settingSalesMedium" placeholder="&gt;0" type="number">
+</input></label>
+<label class="small">Capacité Bins (P1 à P7)</label>
+<div class="grid">
+<input class="input" id="settingCapP1" placeholder="P1" type="number"/>
+<input class="input" id="settingCapP2" placeholder="P2" type="number"/>
+<input class="input" id="settingCapP3" placeholder="P3" type="number"/>
+<input class="input" id="settingCapP4" placeholder="P4" type="number"/>
+<input class="input" id="settingCapP5" placeholder="P5" type="number"/>
+<input class="input" id="settingCapP6" placeholder="P6" type="number"/>
+<input class="input" id="settingCapP7" placeholder="P7" type="number"/>
+</div>
+</div>
+</div>
+<div class="tabPanel" data-panel="remise" style="display:none">
+<div class="col" style="gap:10px">
+<label class="small">Mode remise
+          <select class="input" id="settingRemiseMode">
+<option value="incremental">Incrémental</option>
+<option value="aggregate">Agrégat</option>
+</select>
+</label>
+<label class="small">Validation auto
+          <select class="input" id="settingRemiseAuto">
+<option value="1">Oui</option>
+<option value="0">Non</option>
+</select>
+</label>
+<label class="small">Location par défaut
+          <input class="input" id="settingRemiseDefaultLoc" placeholder="Ex: L3A02"/>
+</label>
+<label class="small">Regroupement max bins
+          <input class="input" id="settingRemiseMaxBins" placeholder="4" type="number"/>
+</label>
+</div>
+</div>
+<div class="tabPanel" data-panel="transfert" style="display:none">
+<div class="col" style="gap:10px">
+<label class="small">Auto-archive
+          <select class="input" id="settingAutoArchive">
+<option value="1">Oui</option>
+<option value="0">Non</option>
+</select>
+</label>
+<label class="small">Étapes tracking
+          <input class="input" id="settingTrackingSteps" placeholder="en-preparation,pret,..."/>
+</label>
+<label class="small">Commandes max/palette
+          <input class="input" id="settingMaxOrders2" placeholder="8" type="number"/>
+</label>
+</div>
+</div>
+<div class="tabPanel" data-panel="imports" style="display:none">
+<div class="col" style="gap:10px">
+<label class="small">Importer inventaire CSV
+          <input accept=".csv" id="fileInventoryCsv" type="file">
+</input></label>
+<button class="tab" id="btnImportInventory">Importer</button>
+</div>
+</div>
+<div class="tabPanel" data-panel="journal" style="display:none">
+<div class="col" style="gap:10px">
+<div class="small muted">Journal des actions locales</div>
+<button class="tab" id="logExportCsv">Exporter CSV</button>
+<button class="tab" id="logClear">Effacer</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<div class="footer-small">Conseil: en mode iPhone, utilisez le bouton "Paramètres → Consolidation" pour ajuster la logique métier.</div>
+</main>
+<div id="toastRoot"></div>
+<!-- Item detail overlay -->
+<div aria-hidden="true" id="itemDetailOverlay">
+<div id="itemDetailCard">
+<div id="itemDetailHeader">
+<div id="itemDetailTitle">Item</div>
+<button aria-label="Fermer" id="itemDetailClose">✕</button>
+</div>
+<div id="itemDetailTags"></div>
+<div id="itemDetailBody">
+<div class="small" id="itemDetailDesc" style="margin-bottom:6px"></div>
+<table>
+<thead><tr><th>Bin</th><th>Qty</th></tr></thead>
+<tbody id="itemDetailBinsBody">
+<tr><td class="small muted" colspan="2" style="text-align:center">Aucune donnée.</td></tr>
+</tbody>
+</table>
+<div class="small" style="margin-top:6px">Total stock : <strong><span id="itemDetailTotal">0</span></strong></div>
+</div>
+</div>
+</div>
+<nav aria-label="Navigation principale" class="bottom-nav" role="navigation">
+<button class="nav-btn active" data-page="home" onclick="try{window.showPage('home')}catch(e){}">🏠</button>
+<button class="nav-btn" data-page="scan" onclick="try{window.showPage('scan')}catch(e){}">🏷️</button>
+<button class="nav-btn" data-page="pick" onclick="try{window.showPage('pick')}catch(e){}">📋</button>
+<button class="nav-btn" data-page="consolider" onclick="try{window.showPage('consolider')}catch(e){}">🧱</button>
+<button class="nav-btn" data-page="transfer" onclick="try{window.showPage('transfer')}catch(e){}">🌀</button>
+<button class="nav-btn" data-page="pallet" onclick="try{window.showPage('pallet')}catch(e){}">🧊</button>
+<button class="nav-btn" data-page="inventaire" onclick="try{window.showPage('inventaire')}catch(e){}">📦</button>
+<button class="nav-btn" data-page="settings" onclick="try{window.showPage('settings')}catch(e){}">⚙️</button>
+<button class="nav-btn" id="analyseBtn" onclick="window.location.href='analyse_index.html'" style="display:none">📈</button></nav>
+</div>
+<script>
+window.addEventListener('DOMContentLoaded', function(){
+  try {
+    const raw = localStorage.getItem('wms_settings');
+    const s = raw ? JSON.parse(raw) : {};
+    const mode = s.mode || 'manager';
+    if(mode === 'manager'){
+      const btn = document.getElementById('analyseBtn');
+      if(btn) btn.style.display = 'flex';
+    }
+  } catch(e){}
+});
+</script>
+<script>
+/* Navigation (buttons + back) - no swipe */
+const pages = document.querySelectorAll('.page');
+const navBtns = document.querySelectorAll('.nav-btn');
+const tiles = document.querySelectorAll('.tile');
+const backButton = document.getElementById('backButton');
+const pageTitle = document.getElementById('pageTitle');
+
+let historyStack = ['home'];
+
+function showPage(name, push=true){
+  const mode = getCurrentMode();
+  const allowedTerrainPages = ['home','scan','pick','consolider'];
+  if(mode === 'terrain' && !allowedTerrainPages.includes(name)){
+    name = 'home';
+    push = false;
+  }
+  pages.forEach(p => p.style.display = (p.id === 'page-' + name) ? 'block' : 'none');
+  navBtns.forEach(b => b.classList.toggle('active', b.dataset.page === name));
+  var _pt = document.getElementById('page-' + name);
+  pageTitle.textContent = ((_pt && _pt.dataset) ? _pt.dataset.title : null) || 'Consolidation';
+  if(name === 'inventaire'){
+    initInventoryIfNeeded();
+  }
+  if(name === 'scan'){
+    setTimeout(()=>{
+      const el = document.getElementById('scanInputItem');
+      if(el) el.focus();
+    }, 250);
+  }
+  if(name === 'pick'){
+    setTimeout(()=>{
+      const el = document.getElementById('remiseScanInput');
+      if(el) el.focus();
+    }, 250);
+  }
+  if(push){
+    if(historyStack[historyStack.length-1] !== name) historyStack.push(name);
+  }
+  backButton.style.visibility = (historyStack.length > 1) ? 'visible' : 'hidden';
+}
+window.showPage = showPage;
+navBtns.forEach(b => b.addEventListener('click', ()=> showPage(b.dataset.page)));
+tiles.forEach(t => t.addEventListener('click', ()=> showPage(t.dataset.page)));
+backButton.addEventListener('click', ()=> { if(historyStack.length>1){ historyStack.pop(); showPage(historyStack[historyStack.length-1], false); } });
+
+const modeSwitch = document.getElementById('modeSwitch');
+if(modeSwitch){
+  modeSwitch.addEventListener('change', (e)=>{
+    setMode(e.target.value);
+  });
+}
+
+
+/* Toast */
+function toast(msg, type='info', ttl=2000){
+  const root = document.getElementById('toastRoot');
+  const el = document.createElement('div'); el.className = 'toast' + (type==='success'?' success': type==='error'?' error':''); el.textContent = msg; root.appendChild(el);
+  setTimeout(()=> el.remove(), ttl);
+}
+
+let wmsLog = [];
+
+function loadLog(){
+  try{
+    const raw = localStorage.getItem('wms_log');
+    wmsLog = raw ? JSON.parse(raw) : [];
+    if(!Array.isArray(wmsLog)) wmsLog = [];
+  }catch(e){
+    wmsLog = [];
+  }
+}
+
+function saveLog(){
+  try{
+    localStorage.setItem('wms_log', JSON.stringify(wmsLog));
+  }catch(e){}
+}
+
+function renderLog(){
+  const tbody = document.querySelector('#logTable tbody');
+  if(!tbody) return;
+  loadLog();
+  tbody.innerHTML = '';
+  if(!wmsLog.length){
+    tbody.innerHTML = '<tr><td colspan="3" class="small muted" style="text-align:center">Aucune action encore.</td></tr>';
+    return;
+  }
+  wmsLog.forEach(e=>{
+    const d = new Date(e.ts);
+    const dt = isNaN(d.getTime()) ? e.ts : d.toLocaleString();
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${dt}</td><td>${e.type||''}</td><td>${e.msg||''}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function addLog(type,msg){
+  loadLog();
+  const entry = { ts:new Date().toISOString(), type, msg };
+  wmsLog.unshift(entry);
+  if(wmsLog.length>500) wmsLog.length = 500;
+  saveLog();
+  renderLog();
+}
+
+/* Quick counters placeholder */
+
+function updateQuick(){
+  const tasks = (window.appMoves && Array.isArray(window.appMoves)) ? window.appMoves.length : 0;
+  const palettesActive = (typeof window.appPalettesActive === 'number') ? window.appPalettesActive : 0;
+  const binsRef = (window.appBinReference && Array.isArray(window.appBinReference)) ? window.appBinReference.length : 0;
+  const tEl = document.getElementById('quickTasks');
+  const pEl = document.getElementById('quickPalettes');
+  const bEl = document.getElementById('quickBins');
+  if(tEl) tEl.textContent = tasks;
+  if(pEl) pEl.textContent = palettesActive;
+  if(bEl) bEl.textContent = binsRef;
+}
+
+
+/* INVENTAIRE — index & vue filtrée */
+let inventoryIndex = [];
+let inventoryFiltered = [];
+let inventoryPage = 1;
+let inventoryInitialized = false;
+const INVENTORY_PAGE_SIZE = 100;
+
+function normalizeInventoryRow(r){
+  const displayline = String(r.displayline || '').trim();
+  const itemFromDisplay = displayline ? displayline.split(' ')[0] : '';
+  const item = String(
+    r.item ||
+    r.itemid ||
+    r.sku ||
+    r.code ||
+    itemFromDisplay ||
+    ''
+  ).trim();
+  const desc = String(
+    r.shortdesc ||
+    r.description ||
+    displayline ||
+    ''
+  ).trim();
+  const bin = String(
+    r.userbinid ||
+    r.bin ||
+    r.locationname ||
+    ''
+  ).trim();
+  const qty = Number(
+    r.qtyoh 
+    r.qty 
+    r.quantity 
+    r.qtyonhand 
+    r.onhand 
+    0
+  ) || 0;
+  return {item, desc, bin, qty};
+}
+
+function initInventoryIfNeeded(){
+  const countEl = document.getElementById('inventoryCount');
+  const tbody = document.querySelector('#inventoryTable tbody');
+  if(!window.appInventory || !window.appInventory.length){
+    inventoryIndex = [];
+    inventoryFiltered = [];
+    inventoryInitialized = false;
+    if(countEl) countEl.textContent = '0';
+    if(tbody){
+      tbody.innerHTML = '<tr><td colspan="4" class="small muted" style="text-align:center">Aucune donnée importée.</td></tr>';
+    }
+    return;
+  }
+  if(!inventoryInitialized){
+    inventoryIndex = window.appInventory.map(normalizeInventoryRow).filter(r => r.item || r.desc || r.bin);
+    inventoryInitialized = true;
+  }
+  applyInventoryFilters();
+}
+
+function applyInventoryFilters(){
+  const searchInput = document.getElementById('inventorySearch');
+  const binInput = document.getElementById('inventoryBinFilter');
+  const qtyOnlyEl = document.getElementById('inventoryQtyOnly');
+  const search = (((searchInput && searchInput.value) != null ? searchInput.value : '')).toLowerCase();
+  const binFilter = (((binInput && binInput.value) != null ? binInput.value : '')).toLowerCase();
+  const qtyOnly = !!(qtyOnlyEl && qtyOnlyEl.checked);
+
+  if(!inventoryIndex || !inventoryIndex.length){
+    const countEl = document.getElementById('inventoryCount');
+    const tbody = document.querySelector('#inventoryTable tbody');
+    if(countEl) countEl.textContent = '0';
+    if(tbody){
+      tbody.innerHTML = '<tr><td colspan="4" class="small muted" style="text-align:center">Aucune donnée à afficher.</td></tr>';
+    }
+    return;
+  }
+
+  inventoryFiltered = inventoryIndex.filter(r => {
+    if(qtyOnly && r.qty <= 0) return false;
+    if(binFilter && !r.bin.toLowerCase().startsWith(binFilter)) return false;
+    if(search){
+      const vItem = (r.item || '').toLowerCase();
+      const vDesc = (r.desc || '').toLowerCase();
+      const vBin = (r.bin || '').toLowerCase();
+      if(!vItem.includes(search) && !vDesc.includes(search) && !vBin.includes(search)) return false;
+    }
+    return true;
+  });
+
+  inventoryPage = 1;
+  renderInventoryPage();
+}
+
+function renderInventoryPage(){
+  const tbody = document.querySelector('#inventoryTable tbody');
+  const countEl = document.getElementById('inventoryCount');
+  const pageEl = document.getElementById('inventoryPage');
+  const prevBtn = document.getElementById('inventoryPrev');
+  const nextBtn = document.getElementById('inventoryNext');
+
+  if(!tbody) return;
+
+  const total = inventoryFiltered ? inventoryFiltered.length : 0;
+  if(countEl) countEl.textContent = String(total || 0);
+
+  if(!total){
+    tbody.innerHTML = '<tr><td colspan="4" class="small muted" style="text-align:center">Aucune donnée à afficher.</td></tr>';
+    if(pageEl) pageEl.textContent = '1';
+    if(prevBtn) prevBtn.setAttribute('disabled','disabled');
+    if(nextBtn) nextBtn.setAttribute('disabled','disabled');
+    return;
+  }
+
+  const maxPage = Math.ceil(total / INVENTORY_PAGE_SIZE);
+  if(inventoryPage < 1) inventoryPage = 1;
+  if(inventoryPage > maxPage) inventoryPage = maxPage;
+
+  if(pageEl) pageEl.textContent = inventoryPage + ' / ' + maxPage;
+
+  const start = (inventoryPage - 1) * INVENTORY_PAGE_SIZE;
+  const end = Math.min(start + INVENTORY_PAGE_SIZE, total);
+
+  tbody.innerHTML = '';
+  for(let i=start;i<end;i++){
+    const r = inventoryFiltered[i];
+    const tr = document.createElement('tr');
+    tr.dataset.item = r.item || '';
+    tr.dataset.desc = r.desc || '';
+    tr.innerHTML = `<td class="inv-item-cell">${r.item || ''}</td><td>${r.desc || ''}</td><td>${r.bin || ''}</td><td>${r.qty}</td>`;
+    tbody.appendChild(tr);
+  }
+
+  if(prevBtn){
+    if(inventoryPage > 1) prevBtn.removeAttribute('disabled'); else prevBtn.setAttribute('disabled','disabled');
+  }
+  if(nextBtn){
+    if(inventoryPage < maxPage) nextBtn.removeAttribute('disabled'); else nextBtn.setAttribute('disabled','disabled');
+  }
+}
+
+/* Item detail overlay logic */
+const overlay = document.getElementById('itemDetailOverlay');
+const overlayTitle = document.getElementById('itemDetailTitle');
+const overlayDesc = document.getElementById('itemDetailDesc');
+const overlayTotal = document.getElementById('itemDetailTotal');
+const overlayBinsBody = document.getElementById('itemDetailBinsBody');
+const overlayTags = document.getElementById('itemDetailTags');
+const overlayClose = document.getElementById('itemDetailClose');
+
+function openItemDetail(item){
+  if(!item) return;
+  if(!inventoryIndex || !inventoryIndex.length){
+    overlayTitle.textContent = item;
+    overlayDesc.textContent = "Aucune donnée d'inventaire chargée.";
+    overlayBinsBody.innerHTML = '<tr><td colspan="2" class="small muted" style="text-align:center">Aucune donnée.</td></tr>';
+    overlayTotal.textContent = '0';
+    overlayTags.innerHTML = '';
+    overlay.style.display = 'flex';
+    overlay.setAttribute('aria-hidden','false');
+    return;
+  }
+
+  const rows = inventoryIndex.filter(r => r.item === item);
+  overlayTitle.textContent = item || 'Item';
+  overlayDesc.textContent = (((rows[0] && rows[0].desc) ? rows[0].desc : '')).trim() || '—';
+
+  overlayTags.innerHTML = '';
+  const badge = (label)=>{
+    const span = document.createElement('span');
+    span.className = 'badge';
+    span.textContent = label;
+    overlayTags.appendChild(span);
+  };
+
+  if(rows.length > 1) badge('Multi-bin');
+  const total = rows.reduce((sum,r)=> sum + (r.qty || 0), 0);
+  if(total === 0) badge('Stock 0');
+  if(total > 0 && total <= 10) badge('Stock faible');
+  if(total > 200) badge('Stock élevé');
+
+  overlayTotal.textContent = String(total);
+
+  if(!rows.length){
+    overlayBinsBody.innerHTML = '<tr><td colspan="2" class="small muted" style="text-align:center">Aucune donnée.</td></tr>';
+  } else {
+    overlayBinsBody.innerHTML = '';
+    rows
+      .slice()
+      .sort((a,b)=> b.qty - a.qty)
+      .forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${r.bin || ''}</td><td>${r.qty}</td>`;
+        overlayBinsBody.appendChild(tr);
+      });
+  }
+
+  overlay.style.display = 'flex';
+  overlay.setAttribute('aria-hidden','false');
+}
+
+function closeItemDetail(){
+  overlay.style.display = 'none';
+  overlay.setAttribute('aria-hidden','true');
+}
+overlayClose.addEventListener('click', closeItemDetail);
+overlay.addEventListener('click', (e)=>{
+  if(e.target === overlay) closeItemDetail();
+});
+
+/* Click in inventory table (event delegation) */
+document.querySelector('#inventoryTable tbody').addEventListener('click', (e)=>{
+  const tr = e.target.closest('tr');
+  if(!tr || !tr.dataset.item) return;
+  openItemDetail(tr.dataset.item);
+});
+
+/* Settings tabs logic (corrigé pour ne viser que les vrais onglets) */
+const tabEls = document.querySelectorAll('.tab[data-tab]');
+const panels = document.querySelectorAll('.tabPanel');
+tabEls.forEach(t => t.addEventListener('click', ()=>{
+  tabEls.forEach(x => x.classList.remove('active'));
+  t.classList.add('active');
+  const key = t.dataset.tab;
+  panels.forEach(p => p.dataset.panel === key ? p.style.display = '' : p.style.display = 'none');
+  if(key === 'journal'){ renderLog(); }
+}));
+
+/* Persisted settings (localStorage) */
+const defaultSettings = { mode:'manager',
+  activeSite:'Laval2', defaultCarrier:'', palettePrefix:'TRF', maxOrdersPerPalette:8,
+  consolidationStrategy:'main-bin', enforcement:'souple', salesHigh:50, salesMedium:1,
+  remiseMode:'incremental', remiseAuto:1, remiseDefaultLoc:'', remiseMaxBins:4,
+  autoArchive:1, trackingSteps:['en-preparation','pret','charge','parti','porte'],
+  capP:{P1:60,P2:120,P3:180,P4:240,P5:300,P6:360,P7:420}
+};
+function loadSettings(){
+  try{
+    const raw = localStorage.getItem('wms_settings');
+    const parsed = raw ? JSON.parse(raw) : {};
+    window.wmsSettings = Object.assign({}, defaultSettings, parsed);
+  } catch(e){ window.wmsSettings = Object.assign({}, defaultSettings); }
+}
+
+function getCurrentMode(){
+  return (window.wmsSettings && window.wmsSettings.mode) || 'manager';
+}
+function applyModeToUI(){
+  const mode = getCurrentMode();
+  const allowedTerrainPages = ['home','scan','pick','consolider'];
+  const sel = document.getElementById('modeSwitch');
+  if(sel){ sel.value = mode; }
+  document.querySelectorAll('.nav-btn').forEach(btn=>{
+    const page = btn.dataset.page;
+    if(mode === 'terrain' && !allowedTerrainPages.includes(page)){
+      btn.classList.add('disabled');
+      btn.setAttribute('aria-disabled','true');
+    } else {
+      btn.classList.remove('disabled');
+      btn.removeAttribute('aria-disabled');
+    }
+  });
+  document.querySelectorAll('.tile').forEach(tile=>{
+    const page = tile.dataset.page;
+    if(mode === 'terrain' && !allowedTerrainPages.includes(page)){
+      tile.classList.add('disabled');
+    } else {
+      tile.classList.remove('disabled');
+    }
+  });
+}
+function setMode(mode){
+  if(!window.wmsSettings) window.wmsSettings = {};
+  window.wmsSettings.mode = mode === 'terrain' ? 'terrain' : 'manager';
+  try{
+    localStorage.setItem('wms_settings', JSON.stringify(window.wmsSettings));
+  }catch(e){}
+  applySettingsToUI();
+  applyModeToUI();
+  toast(mode === 'terrain' ? 'Mode Terrain actif' : 'Mode Manager actif','success');
+  addLog('Mode', 'Basculé en mode ' + (mode === 'terrain' ? 'Terrain' : 'Manager'));
+}
+
+function saveSettings(){
+  try{
+    localStorage.setItem('wms_settings', JSON.stringify(window.wmsSettings));
+    toast('Paramètres sauvegardés', 'success');
+    applySettingsToUI();
+  } catch(e){ toast('Erreur sauvegarde', 'error'); }
+}
+function applySettingsToUI(){
+  const s = window.wmsSettings;
+  document.getElementById('settingActiveSite').value = s.activeSite;
+  const _modeSel = document.getElementById('modeSwitch'); if(_modeSel){ _modeSel.value = s.mode || 'manager'; }
+  document.getElementById('settingDefaultCarrier').value = s.defaultCarrier;
+  document.getElementById('settingPalettePrefix').value = s.palettePrefix;
+  document.getElementById('settingMaxOrders').value = s.maxOrdersPerPalette;
+  document.getElementById('settingConsolStrategy').value = s.consolidationStrategy;
+  document.getElementById('settingEnforcement').value = s.enforcement;
+  document.getElementById('settingSalesHigh').value = s.salesHigh;
+  document.getElementById('settingSalesMedium').value = s.salesMedium;
+  document.getElementById('settingRemiseMode').value = s.remiseMode;
+  document.getElementById('settingRemiseAuto').value = s.remiseAuto;
+  document.getElementById('settingRemiseDefaultLoc').value = s.remiseDefaultLoc;
+  const _remMax = document.getElementById('settingRemiseMaxBins'); if(_remMax){ _remMax.value = s.remiseMaxBins || ''; }
+  document.getElementById('settingAutoArchive').value = s.autoArchive ? '1':'0';
+  document.getElementById('settingTrackingSteps').value = (s.trackingSteps || []).join(',');
+  document.getElementById('settingMaxOrders2').value = s.maxOrdersPerPalette;
+  ['P1','P2','P3','P4','P5','P6','P7'].forEach(p => {
+    const el = document.getElementById('settingCap'+p);
+    if(el) el.value = (s.capP && s.capP[p]) || '';
+  });
+  document.getElementById('rulesPreview').textContent = `Strategy: ${s.consolidationStrategy} — Enforcement: ${s.enforcement} — Sales high>${s.salesHigh}`;
+}
+function loadAndApply(){
+  loadSettings(); applySettingsToUI(); updateQuick();
+}
+loadAndApply();
+applyModeToUI();
+renderLog();
+
+/* Save buttons wiring */
+document.getElementById('saveGeneral') && document.getElementById('saveGeneral').addEventListener('click', ()=>{
+  const s = window.wmsSettings;
+  s.activeSite = document.getElementById('settingActiveSite').value;
+  s.defaultCarrier = document.getElementById('settingDefaultCarrier').value;
+  s.palettePrefix = document.getElementById('settingPalettePrefix').value || 'TRF';
+  s.maxOrdersPerPalette = parseInt(document.getElementById('settingMaxOrders').value,10) || 8;
+  saveSettings();
+});
+document.getElementById('saveConsolidation') && document.getElementById('saveConsolidation').addEventListener('click', ()=>{
+  const s = window.wmsSettings;
+  s.consolidationStrategy = document.getElementById('settingConsolStrategy').value;
+  s.enforcement = document.getElementById('settingEnforcement').value;
+  s.salesHigh = parseInt(document.getElementById('settingSalesHigh').value,10) || 50;
+  s.salesMedium = parseInt(document.getElementById('settingSalesMedium').value,10) || 1;
+  if(!s.capP) s.capP = {};
+  ['P1','P2','P3','P4','P5','P6','P7'].forEach(p => {
+    const el = document.getElementById('settingCap'+p);
+    if(el){
+      const v = parseInt(el.value,10);
+      s.capP[p] = isNaN(v) ? (s.capP[p] || 0) : v;
+    }
+  });
+  saveSettings();
+});
+document.getElementById('saveRemise') && document.getElementById('saveRemise').addEventListener('click', ()=>{
+  const s = window.wmsSettings;
+  s.remiseMode = document.getElementById('settingRemiseMode').value;
+  s.remiseAuto = document.getElementById('settingRemiseAuto').value === '1' ? 1 : 0;
+  s.remiseDefaultLoc = document.getElementById('settingRemiseDefaultLoc').value || '';
+  const maxBinsEl = document.getElementById('settingRemiseMaxBins');
+  if(maxBinsEl){
+    const v = parseInt(maxBinsEl.value,10);
+    s.remiseMaxBins = isNaN(v) ? s.remiseMaxBins || 0 : v;
+  }
+  saveSettings();
+});
+document.getElementById('saveTransfer') && document.getElementById('saveTransfer').addEventListener('click', ()=>{
+  const s = window.wmsSettings;
+  s.autoArchive = document.getElementById('settingAutoArchive').value === '1';
+  s.trackingSteps = (document.getElementById('settingTrackingSteps').value || '').split(',').map(x => x.trim()).filter(Boolean) || s.trackingSteps;
+  s.maxOrdersPerPalette = parseInt(document.getElementById('settingMaxOrders2').value,10) || s.maxOrdersPerPalette;
+  saveSettings();
+});
+
+/* Run consolidation (simplified) */
+document.getElementById('runConsolidationNow') && document.getElementById('runConsolidationNow').addEventListener('click', async ()=>{
+  if(!window.appInventory || !window.appInventory.length){ toast('Importer inventaire avant de lancer', 'error'); return; }
+  const s = window.wmsSettings;
+  const groups = new Map();
+  window.appInventory.forEach(r => {
+    const item = String(r.item || r.itemid || r.sku || r.code || '').trim();
+    const bin = String(r.userbinid || r.bin || '').trim();
+    const qty = Number(r.qtyoh  r.qty  r.quantity) || 0;
+    if(!item || !bin || qty <= 0) return;
+    if(!groups.has(item)) groups.set(item, []);
+    groups.get(item).push({bin,qty});
+  });
+  const moves = [];
+  window.appMoves = moves;
+
+  groups.forEach((list, item) => {
+    if(list.length <= 1) return;
+    const sorted = list.slice().sort((a,b) => b.qty - a.qty);
+    const main = sorted[0];
+    for(let i=1;i<sorted.length;i++){
+      const src = sorted[i];
+      const exception = (s.enforcement === 'strict' && false);
+      moves.push({item,fromBin:src.bin,toBin:main.bin,qty:src.qty,exception});
+    }
+  });
+
+  // Exceptions capacités & multi-bins
+  const excTb = document.getElementById('exceptionsTable').querySelector('tbody');
+  excTb.innerHTML = '';
+  let excCount = 0;
+  const caps = (window.wmsSettings && window.wmsSettings.capP) ? window.wmsSettings.capP : {};
+  const maxCap = caps.P7 || caps.P6 || 0;
+  const maxBins = (window.wmsSettings && window.wmsSettings.remiseMaxBins) ? window.wmsSettings.remiseMaxBins : 0;
+
+  groups.forEach((list, item) => {
+    const total = list.reduce((sum,r)=> sum + (Number(r.qty)||0), 0);
+    if(maxCap && total > maxCap){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>Capacité</td><td>Item ${item}: ${total} > P7 (${maxCap})</td><td>A analyser</td>`;
+      excTb.appendChild(tr);
+      excCount++;
+    }
+    if(maxBins && list.length > maxBins){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>Multi-bins</td><td>Item ${item}: ${list.length} bins (> ${maxBins})</td><td>Consolider</td>`;
+      excTb.appendChild(tr);
+      excCount++;
+    }
+  });
+  if(!excCount){
+    excTb.innerHTML = '<tr><td colspan="3" class="small muted" style="text-align:center">Aucune exception.</td></tr>';
+  }
+
+  const tbody = document.getElementById('moveExportTable').querySelector('tbody'); tbody.innerHTML = '';
+  if(!moves.length){
+    tbody.innerHTML = '<tr><td colspan="5" class="small muted" style="text-align:center">Aucun déplacement recommandé.</td></tr>';
+    document.getElementById('consoSummary').textContent = 'Aucun mouvement'; updateQuick(); return;
+  }
+  const frag = document.createDocumentFragment();
+  moves.forEach(m => {
+    const tr = document.createElement('tr');
+    tr.dataset.item = m.item;
+    tr.innerHTML = `<td class="move-item-cell">${m.item}</td><td>${m.fromBin}</td><td>${m.toBin}</td><td>${m.qty}</td><td>${m.exception ? 'Exception' : ''}</td>`;
+    frag.appendChild(tr);
+  });
+  tbody.appendChild(frag);
+
+  // Click on item in moves table → open detail
+  tbody.addEventListener('click', (e)=>{
+    const tr = e.target.closest('tr');
+    if(!tr || !tr.dataset.item) return;
+    openItemDetail(tr.dataset.item);
+  }, { once:true });
+
+  document.getElementById('consoSummary').textContent = `${moves.length} mouvements générés (simulation)`; updateQuick();
+  toast('Simulation terminée', 'success'); addLog('Simulation', moves.length + ' mouvements générés');
+});
+
+/* Exceptions table actions */
+document.getElementById('btnClearExceptions') && document.getElementById('btnClearExceptions').addEventListener('click', ()=>{
+  const tb = document.getElementById('exceptionsTable').querySelector('tbody');
+  tb.innerHTML = '<tr><td colspan="3" class="small muted" style="text-align:center">Aucune exception.</td></tr>';
+  toast('Exceptions marquées résolues', 'success');
+});
+document.getElementById('btnExportExceptions') && document.getElementById('btnExportExceptions').addEventListener('click', ()=>{
+  toast('Export exceptions (démo)', 'success');
+});
+
+/* Import wiring (simple chunked parse) */
+function detectSep(line){ if(!line) return ','; if(line.indexOf(';')>-1) return ';'; if(line.indexOf('\t')>-1) return '\t'; return ','; }
+function parseCsvChunked(text, onDone){
+  const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+  if(!lines.length){ onDone([]); return; }
+  const sep = detectSep(lines[0]);
+  const headers = lines[0].split(sep).map(h => h.trim().toLowerCase());
+  const rows = [];
+  for(let i=1;i<lines.length;i++){
+    const parts = lines[i].split(sep);
+    if(parts.length !== headers.length) continue;
+    const obj = {};
+    for(let j=0;j<headers.length;j++) obj[headers[j]] = parts[j] != null ? parts[j].trim() : '';
+    rows.push(obj);
+  }
+  onDone(rows);
+}
+
+document.getElementById('btnImportInventory') && document.getElementById('btnImportInventory').addEventListener('click', ()=>{
+  const fi = document.getElementById('fileInventoryCsv');
+  if(!fi || !fi.files || !fi.files[0]) return toast('Choisir un fichier .csv (inventaire)', 'error');
+  const f = fi.files[0];
+  const reader = new FileReader();
+  reader.onload = e => {
+    parseCsvChunked(e.target.result, rows => {
+      window.appInventory = rows;
+      inventoryInitialized = false;
+      toast('Inventaire importé: ' + rows.length, 'success');
+      updateQuick();
+      initInventoryIfNeeded();
+    });
+  };
+  reader.readAsText(f, 'ISO-8859-1');
+});
+
+document.getElementById('btnImportBins') && document.getElementById('btnImportBins').addEventListener('click', ()=>{
+  const fi = document.getElementById('fileBinsCsv'); if(!fi || !fi.files || !fi.files[0]) return toast('Choisir un fichier .csv (bins)', 'error');
+  const f = fi.files[0]; const reader = new FileReader();
+  reader.onload = e => { parseCsvChunked(e.target.result, rows => { window.appBinReference = rows; toast('Bins importés: '+rows.length,'success'); updateQuick(); }); };
+  reader.readAsText(f, 'ISO-8859-1');
+});
+
+document.getElementById('btnRefreshInventory') && document.getElementById('btnRefreshInventory').addEventListener('click', ()=>{
+  if(window.appInventory && window.appInventory.length){
+    inventoryInitialized = false;
+    initInventoryIfNeeded();
+    toast('Vues rafraîchies', 'success');
+  } else toast('Aucune donnée importée', 'error');
+});
+
+/* Transfer wiring (basic) */
+let currentIndex = 1, currentCommands = [];
+function refreshPaletteId(){ document.getElementById('transfertCurrentPaletteId').textContent = (document.getElementById('settingPalettePrefix').value || 'TRF') + String(currentIndex).padStart(6,'0'); }
+function renderCurrentCommands(){ const tbody = document.getElementById('transfertPoCurrentTable').querySelector('tbody'); tbody.innerHTML = ''; if(!currentCommands.length){ tbody.innerHTML = '<tr><td colspan="2" class="small muted" style="text-align:center">Aucune commande.</td></tr>'; return; } currentCommands.forEach((c,i)=>{ const tr = document.createElement('tr'); tr.innerHTML = `<td>${i+1}</td><td>${c}</td>`; tbody.appendChild(tr); }); }
+document.getElementById('btnAddPoTransfert') && document.getElementById('btnAddPoTransfert').addEventListener('click', ()=>{
+  const v = document.getElementById('transfertPoInput').value.trim(); if(!v) return toast('Entrer commande','error');
+  currentCommands.push(v); document.getElementById('transfertPoInput').value = ''; renderCurrentCommands(); window.appPalettesActive = 1; updateQuick(); toast('Commande ajoutée','success');
+});
+document.getElementById('btnArchivePalette') && document.getElementById('btnArchivePalette').addEventListener('click', ()=>{
+  if(!currentCommands.length) return toast('Aucune commande','error');
+  const id = (document.getElementById('settingPalettePrefix').value || 'TRF') + String(currentIndex).padStart(6,'0');
+  const now = new Date().toLocaleString();
+  const histTb = document.getElementById('histPaletteTable').querySelector('tbody');
+  if(histTb.children.length===1 && (histTb.children[0].querySelector('td') && histTb.children[0].querySelector('td').hasAttribute('colspan'))) histTb.innerHTML = '';
+  const cmdCount = currentCommands.length;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${id}</td><td>Archivée</td><td>${now}</td><td>${cmdCount}</td>`;
+  histTb.appendChild(tr);
+  currentIndex++;
+  currentCommands = [];
+  renderCurrentCommands();
+  refreshPaletteId();
+  toast('Palette archivée: ' + id, 'success');
+  window.appPalettesActive = 0;
+  updateQuick();
+  addLog('Palette', `Palette ${id} archivée (${cmdCount} commandes)`);
+});
+
+
+
+/* Initial display */
+showPage('home');
+refreshPaletteId();
+updateQuick();
+
+/* Apply settings initial defaults to UI */
+(function initSettingsUI(){
+  const s = window.wmsSettings || {};
+  document.getElementById('rulesPreview').textContent = `Strategy: ${s.consolidationStrategy || 'main-bin'} • Enforcement: ${s.enforcement || 'souple'}`;
+})();
+
+// Accordion logic
+document.querySelectorAll('.acc-header').forEach(h=>{
+  h.addEventListener('click', ()=>{
+    const body = h.nextElementSibling;
+    const open = body.style.display === 'block';
+    document.querySelectorAll('.acc-body').forEach(b=> b.style.display='none');
+    document.querySelectorAll('.acc-header').forEach(x=> x.classList.remove('open'));
+    if(!open){
+      body.style.display = 'block';
+      h.classList.add('open');
+    }
+  });
+});
+
+
+// Journal actions
+document.getElementById('logClear') && document.getElementById('logClear').addEventListener('click', ()=>{
+  wmsLog = [];
+  saveLog();
+  renderLog();
+  toast('Journal effacé','success');
+});
+
+document.getElementById('logExportCsv') && document.getElementById('logExportCsv').addEventListener('click', ()=>{
+  loadLog();
+  if(!wmsLog.length){
+    toast('Journal vide','error');
+    return;
+  }
+  let csv = 'date;type;message\n';
+  wmsLog.forEach(e=>{
+    csv += `${e.ts};${(e.type||'').replace(/;/g, ',')};${(e.msg||'').replace(/;/g, ',')}\n`;
+  });
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'journal_wms.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Export journal (CSV)','success');
+});
+
+</script>
+</body>
+</html>
