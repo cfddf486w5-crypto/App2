@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DL WMS – Remise en stock</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header>
+        <h1>DL WMS · Remise en stock</h1>
+        <p id="statusBanner" class="banner">Mode hors ligne prêt</p>
+      </header>
+
+      <section class="card">
+        <h2>1) Génération de remise</h2>
+        <div class="scan-row">
+          <label for="itemScanInput">Scan ITEM</label>
+          <input id="itemScanInput" placeholder="ex: ITEM-12345" autocomplete="off" />
+          <button id="addItemBtn">Ajouter scan</button>
+          <button id="manualToggle" class="icon-btn" title="Entrée manuelle">⌨️</button>
+        </div>
+        <div id="manualRow" class="scan-row hidden">
+          <label for="manualQty">Qté</label>
+          <input id="manualQty" type="number" min="1" step="1" value="1" />
+          <button id="manualAddBtn">Ajouter manuel</button>
+        </div>
+        <ul id="activeList" class="list"></ul>
+      </section>
+
+      <section class="card">
+        <h2>2) Compléter palette / panier</h2>
+        <button id="completeBtn">Compléter palette / panier</button>
+      </section>
+
+      <section class="card">
+        <h2>3) Prochaine remise (terrain)</h2>
+        <div id="nextRunInfo" class="info">Aucune remise à traiter.</div>
+        <div class="scan-row">
+          <label for="processScanInput">Scan ITEM / BIN</label>
+          <input id="processScanInput" placeholder="scanner ITEM puis BIN" autocomplete="off" />
+          <button id="processScanBtn">Valider scan</button>
+        </div>
+        <button id="forceBtn" class="warn">Forcer</button>
+      </section>
+
+      <section class="card">
+        <h2>4) Historique</h2>
+        <div id="archiveList"></div>
+      </section>
+    </main>
+
+    <dialog id="itemActionDialog">
+      <h3 id="dialogItemTitle">Action item</h3>
+      <div class="btn-grid">
+        <button data-action="scrap">🔧 Briser</button>
+        <button data-action="rebox">📦 Rebox</button>
+        <button data-action="delete">🗑 Supprimer</button>
+        <button data-action="cancel">Annuler</button>
+      </div>
+    </dialog>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>
