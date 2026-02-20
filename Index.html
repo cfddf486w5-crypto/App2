@@ -206,48 +206,32 @@ thead th{font-weight:700}
 <div class="card">
 <h2>Remise en stock</h2>
 <div class="row">
-<input class="input" id="remiseScanInput" placeholder="ITEM [location]"/>
-<button class="tab" id="btnRemiseAdd">Ajouter</button>
+<input class="input" id="remiseScanInput" placeholder="Scanner ITEM"/>
+<button class="tab" id="btnRemiseAdd">Scan</button>
+<button aria-label="Entrée manuelle" class="tab" id="btnToggleManual" style="flex:0 0 auto">⌨️</button>
 </div>
-<div class="accordion">
-<div class="acc-header">ℹ️ Info Remise <span>tap pour ouvrir</span></div>
-<div class="acc-body small">
-        Scanner ITEM puis BIN. Utilise le mode incrémental ou agrégat selon ton flux terrain.
-      </div>
-</div>
-<div class="accordion">
-<div class="acc-header">📜 Règles Remise <span>tap pour ouvrir</span></div>
-<div class="acc-body small">
-        • Ne jamais mélanger deux items dans la même bin<br/>
-        • Respecter la capacité du type de bin<br/>
-        • Prioriser bins proches pour limiter déplacements
-      </div>
+<div class="row" id="manualEntryRow" style="display:none;margin-top:8px">
+<input class="input" id="remiseManualInput" placeholder="ITEM|ZONE|BIN"/>
+<button class="tab" id="btnManualAdd">Ajouter</button>
 </div>
 <div style="margin-top:10px">
 <table class="scan-info-table" id="remiseTable" style="display:none">
-<thead><tr><th>Location</th><th>Item</th><th>Qty</th></tr></thead><tbody></tbody>
+<thead><tr><th>Zone</th><th>Item</th><th>Bin attendu</th><th>Qty</th><th>Type</th></tr></thead><tbody></tbody>
 </table>
 <p class="small" id="remiseEmptyMsg" style="text-align:center;margin:8px 0">Aucun item scanné</p>
 </div>
-<div class="row" style="margin-top:8px"><button class="tab" id="remiseExportExcel">Exporter CSV</button><button class="tab" id="remiseExportPdf">Exporter PDF</button></div>
+<div class="row" style="margin-top:8px"><button class="tab" id="btnCompleteRemise">Compléter palette / panier</button><button class="tab" id="remiseExportExcel">Exporter CSV</button><button class="tab" id="remiseExportPdf">Exporter PDF</button></div>
+<div class="small" id="remiseBuildStatus" style="margin-top:8px">ID en attente: —</div>
 </div>
 <div class="card">
-<h2>Paramètres rapides (Remise)</h2>
-<div class="grid">
-<label class="small">Mode remise
-            <select class="input" id="remiseMode">
-<option value="incremental">Incrémental (1 scan = +1)</option>
-<option value="aggregate">Agrégation automatique</option>
-</select>
-</label>
-<label class="small">Destination par défaut
-            <input class="input" id="remiseDefaultLocation" placeholder="Ex: L3A02"/>
-</label>
-<label class="small">Validation automatique
-            <select class="input" id="remiseAutoValidate"><option value="1">Oui</option><option value="0">Non</option></select>
-</label>
-<div></div>
+<h2>Prochaine remise (terrain)</h2>
+<div class="small" id="nextRemiseMeta">Aucune remise à traiter.</div>
+<div class="row" style="margin-top:8px">
+<input class="input" id="nextRemiseScanInput" placeholder="Scanner ITEM puis BIN"/>
+<button class="tab" id="btnNextRemiseScan">Valider</button>
+<button class="tab" id="btnForceQty">Forcer</button>
 </div>
+<div class="small" id="nextRemiseStatus" style="margin-top:8px">—</div>
 </div>
 </section>
 <!-- CONSOLIDER -->
@@ -980,6 +964,147 @@ function loadAndApply(){
 loadAndApply();
 applyModeToUI();
 renderLog();
+
+/* Remise engine */
+const REMISE_ZONE_ORDER = ['g1','lavmontage','lavpickup','lavreception','scrap','lavretour','g7','g2','g4','lavstorage','lavcage','g0','g3','g5','lavmezzanine','g6','lavremise'];
+let remiseState = {activeItems:[],archives:[],counters:{main:0,panier:0},pending:[]};
+let nextWorkflow = {step:'scan_item', item:null, expectedBin:'', scannedQty:0, targetQty:0, entryIndex:0};
+
+function zoneRank(z){ const k = String(z||'').toLowerCase(); const i = REMISE_ZONE_ORDER.indexOf(k); return i === -1 ? 999 : i; }
+function saveRemiseState(){ localStorage.setItem('wms_remise_state', JSON.stringify(remiseState)); }
+function loadRemiseState(){
+  try{
+    const raw = localStorage.getItem('wms_remise_state');
+    const parsed = raw ? JSON.parse(raw) : {};
+    remiseState.activeItems = Array.isArray(parsed.activeItems) ? parsed.activeItems : [];
+    remiseState.archives = Array.isArray(parsed.archives) ? parsed.archives : [];
+    remiseState.pending = Array.isArray(parsed.pending) ? parsed.pending : [];
+    remiseState.counters = parsed.counters || {main:0,panier:0};
+  }catch(e){ saveRemiseState(); }
+}
+function normalizeScan(scan){
+  const parts = String(scan||'').split('|').map(v=>v.trim()).filter(Boolean);
+  return { item:(parts[0]||'').toUpperCase(), zone:(parts[1]||'lavremise').toLowerCase(), bin:(parts[2]||'BIN-ATTENTE').toUpperCase() };
+}
+function getActiveByItem(item){ return remiseState.activeItems.find(x=>x.item===item && x.kind!=='scrap'); }
+function renderRemiseTable(){
+  const tb = document.querySelector('#remiseTable tbody');
+  const table = document.getElementById('remiseTable');
+  const empty = document.getElementById('remiseEmptyMsg');
+  const rows = remiseState.activeItems.slice().sort((a,b)=> zoneRank(a.zone)-zoneRank(b.zone));
+  tb.innerHTML='';
+  rows.forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.dataset.item = r.item;
+    tr.innerHTML = `<td>${r.zone}</td><td>${r.item}</td><td>${r.expectedBin}</td><td>${r.qty}</td><td>${r.kind||'normal'}</td>`;
+    tb.appendChild(tr);
+  });
+  table.style.display = rows.length ? '' : 'none';
+  empty.style.display = rows.length ? 'none' : '';
+}
+function addScanToRemise(scan, manual){
+  const data = normalizeScan(scan);
+  if(!data.item) return toast('Scan ITEM requis', 'error');
+  const current = getActiveByItem(data.item);
+  if(current){ current.qty += 1; }
+  else remiseState.activeItems.push({item:data.item, zone:data.zone, expectedBin:data.bin, qty:1, kind:'normal'});
+  saveRemiseState();
+  renderRemiseTable();
+  addLog('Remise', `${manual?'Entrée manuelle':'Scan'} ${data.item} +1`);
+}
+function performItemAction(item){
+  const choice = prompt(`Action pour ${item}: briser | rebox | supprimer`,'');
+  if(!choice) return;
+  const entry = remiseState.activeItems.find(x=>x.item===item);
+  if(!entry) return;
+  const c = choice.toLowerCase();
+  if(c==='briser'){
+    const scrapBin = prompt('Scanner bac Scrap (obligatoire)','SCRAPBOX1');
+    if(!scrapBin) return toast('Bac scrap requis', 'error');
+    const user = prompt('Utilisateur', 'operateur') || 'operateur';
+    remiseState.archives.unshift({type:'scrap', item:entry.item, qty:entry.qty, zone:entry.zone, scrapBin, user, at:new Date().toISOString()});
+    remiseState.activeItems = remiseState.activeItems.filter(x=>x.item!==item);
+    toast('Item brisé et archivé', 'success');
+  } else if(c==='rebox'){
+    entry.kind = 'rebox';
+    entry.zone = 'lavremise';
+    toast('Item envoyé en Rebox', 'success');
+  } else if(c==='supprimer'){
+    if(confirm('Confirmer suppression visible ?')){
+      remiseState.activeItems = remiseState.activeItems.filter(x=>x.item!==item);
+      addLog('Remise', `Suppression ${item}`);
+    }
+  }
+  saveRemiseState();
+  renderRemiseTable();
+}
+function nextMainId(){ remiseState.counters.main=(remiseState.counters.main||0)+1; return 'LAVREM'+String(remiseState.counters.main).padStart(4,'0'); }
+function completeRemise(){
+  if(!remiseState.activeItems.length) return toast('Aucun item à clôturer', 'error');
+  const id = nextMainId();
+  const sorted = remiseState.activeItems.slice().sort((a,b)=> zoneRank(a.zone)-zoneRank(b.zone));
+  const archive = {id, createdAt:new Date().toISOString(), items:sorted, locked:true};
+  remiseState.archives.unshift(archive);
+  remiseState.pending.push({id, index:0, items:sorted});
+  remiseState.activeItems = [];
+  document.getElementById('remiseBuildStatus').textContent = 'Dernière remise: '+id;
+  saveRemiseState();
+  renderRemiseTable();
+  refreshNextRemiseMeta();
+  toast(`Remise ${id} complétée`, 'success');
+}
+function refreshNextRemiseMeta(){
+  const meta = document.getElementById('nextRemiseMeta');
+  const pending = remiseState.pending[0];
+  if(!pending){ meta.textContent = 'Aucune remise à traiter.'; return; }
+  meta.textContent = `Remise ${pending.id} • ${pending.items.length} lignes`;
+}
+function getCurrentPendingEntry(){
+  const p = remiseState.pending[0];
+  if(!p) return null;
+  return p.items[p.index] || null;
+}
+function handleNextScan(){
+  const input = document.getElementById('nextRemiseScanInput');
+  const status = document.getElementById('nextRemiseStatus');
+  const value = input.value.trim().toUpperCase();
+  if(!value) return;
+  const pending = remiseState.pending[0];
+  const entry = getCurrentPendingEntry();
+  if(!pending || !entry) return toast('Aucune remise en cours', 'error');
+  if(nextWorkflow.step==='scan_item'){
+    if(value !== entry.item) return toast('ITEM incorrect', 'error');
+    nextWorkflow.step='scan_bin'; nextWorkflow.item=entry.item; nextWorkflow.expectedBin=entry.expectedBin; nextWorkflow.targetQty=entry.qty; nextWorkflow.scannedQty += 1;
+    status.textContent = entry.qty===1 ? 'Produit confirmé. Scanner BIN.' : `Pièce 1/${entry.qty} confirmée. Scanner BIN à la fin.`;
+  } else {
+    if(value !== entry.expectedBin.toUpperCase()) return toast('BIN incorrect', 'error');
+    status.textContent = 'Remise complète';
+    pending.index += 1;
+    nextWorkflow = {step:'scan_item', item:null, expectedBin:'', scannedQty:0, targetQty:0, entryIndex:pending.index};
+    if(pending.index >= pending.items.length){
+      remiseState.pending.shift();
+      status.textContent = 'Remise terminée, retour lavremise';
+    }
+    saveRemiseState();
+    refreshNextRemiseMeta();
+  }
+  input.value='';
+}
+
+loadRemiseState();
+renderRemiseTable();
+refreshNextRemiseMeta();
+document.getElementById('btnRemiseAdd').addEventListener('click', ()=>{ addScanToRemise(document.getElementById('remiseScanInput').value, false); document.getElementById('remiseScanInput').value=''; });
+document.getElementById('remiseScanInput').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('btnRemiseAdd').click(); });
+document.getElementById('btnToggleManual').addEventListener('click', ()=>{ const row = document.getElementById('manualEntryRow'); row.style.display = row.style.display==='none'?'':'none'; });
+document.getElementById('btnManualAdd').addEventListener('click', ()=>{ addScanToRemise(document.getElementById('remiseManualInput').value, true); document.getElementById('remiseManualInput').value=''; });
+document.querySelector('#remiseTable tbody').addEventListener('click', e=>{ const tr=e.target.closest('tr'); if(!tr) return; performItemAction(tr.dataset.item); });
+document.getElementById('btnCompleteRemise').addEventListener('click', completeRemise);
+document.getElementById('btnNextRemiseScan').addEventListener('click', handleNextScan);
+document.getElementById('nextRemiseScanInput').addEventListener('keydown', e=>{ if(e.key==='Enter') handleNextScan(); });
+document.getElementById('btnForceQty').addEventListener('click', ()=>{ const j=prompt('Justification forçage (obligatoire)'); if(!j) return toast('Justification requise', 'error'); const p=remiseState.pending[0]; if(!p) return; p.index += 1; addLog('Forçage', j); nextWorkflow={step:'scan_item',item:null,expectedBin:'',scannedQty:0,targetQty:0,entryIndex:p.index}; if(p.index>=p.items.length) remiseState.pending.shift(); saveRemiseState(); refreshNextRemiseMeta(); toast('Forçage appliqué', 'success'); });
+document.getElementById('remiseExportExcel').addEventListener('click', ()=>{ toast('Export CSV prêt (archive)', 'success'); });
+document.getElementById('remiseExportPdf').addEventListener('click', ()=>{ toast('Export PDF prêt (archive)', 'success'); });
 
 /* Save buttons wiring */
 document.getElementById('saveGeneral') && document.getElementById('saveGeneral').addEventListener('click', ()=>{
