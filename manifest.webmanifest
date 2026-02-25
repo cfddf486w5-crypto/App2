@@ -1,9 +1,17 @@
 {
-  "name": "DL WMS Remise",
-  "short_name": "DLWMS",
-  "start_url": "/index.html",
-  "display": "standalone",
-  "background_color": "#f3f4f6",
-  "theme_color": "#111827",
-  "icons": []
+    "name": "DL WMS Offline",
+    "short_name": "DL WMS",
+    "start_url": "/index.html",
+    "display": "standalone",
+    "background_color": "#070B14",
+    "theme_color": "#070B14",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%233B82F6'/><text x='50' y='50' font-family='Arial' font-size='40' fill='white' text-anchor='middle' dominant-baseline='middle'>DL</text></svg>",
+            "sizes": "192x192",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ]
 }
