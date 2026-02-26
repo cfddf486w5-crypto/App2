@@ -1,0 +1,37 @@
+<section class="page-wrap">
+    <div class="glass-card" style="margin-bottom:16px;">
+        <h2>Réglages de l'entrepôt</h2>
+        <p class="subtext">Configuration locale partagée à tous les modules.</p>
+    </div>
+
+    <div class="glass-card">
+        <label for="warehouse-name" class="subtext">Nom du site</label>
+        <input type="text" id="warehouse-name" placeholder="Nom de l'entrepôt">
+        <label for="operator-name" class="subtext">Opérateur</label>
+        <input type="text" id="operator-name" placeholder="Nom opérateur">
+        <button class="btn-primary" id="save-settings">Enregistrer</button>
+        <p id="save-feedback" class="subtext" style="margin-top:10px;"></p>
+    </div>
+</section>
+
+<script>
+    (async function () {
+        const warehouseInput = document.getElementById('warehouse-name');
+        const operatorInput = document.getElementById('operator-name');
+        const saveBtn = document.getElementById('save-settings');
+        const feedback = document.getElementById('save-feedback');
+
+        const warehouse = await Store.get('settings', 'warehouseName');
+        const operator = await Store.get('settings', 'operator');
+
+        warehouseInput.value = warehouse?.value || '';
+        operatorInput.value = operator?.value || '';
+
+        saveBtn.addEventListener('click', async () => {
+            await Store.put('settings', { key: 'warehouseName', value: warehouseInput.value.trim() || 'DL WMS - Site Principal' });
+            await Store.put('settings', { key: 'operator', value: operatorInput.value.trim() || 'Équipe A' });
+            await Store.add('activity_log', { type: 'settings', message: 'Réglages mis à jour', timestamp: Date.now() });
+            feedback.textContent = 'Réglages sauvegardés localement.';
+        });
+    })();
+</script>
