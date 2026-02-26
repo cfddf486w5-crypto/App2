@@ -1,0 +1,29 @@
+<section class="page-wrap">
+    <div class="glass-card" style="margin-bottom:16px;">
+        <h2>Historique opérationnel</h2>
+        <p class="subtext">Timeline consolidée de tous les événements offline.</p>
+    </div>
+
+    <div class="glass-card">
+        <ul id="history-list" class="list-reset"></ul>
+    </div>
+</section>
+
+<script>
+    (async function () {
+        const list = document.getElementById('history-list');
+        const events = await Store.getAll('activity_log');
+
+        if (!events.length) {
+            list.innerHTML = '<li class="subtext">Aucun événement pour le moment.</li>';
+            return;
+        }
+
+        events.slice().reverse().forEach((item) => {
+            list.innerHTML += `<li style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <strong>${item.message}</strong>
+                <div class="subtext">${new Date(item.timestamp).toLocaleString()}</div>
+            </li>`;
+        });
+    })();
+</script>

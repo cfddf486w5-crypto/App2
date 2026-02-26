@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>DL WMS</title>
@@ -12,14 +12,23 @@
 </head>
 <body>
     <div id="particles"></div>
-    
-    <main id="app-root">
-        </main>
+
+    <div class="app-shell">
+        <header class="top-header glass-card">
+            <div>
+                <p class="subtext">Warehouse Management System</p>
+                <h1>DL WMS Professional</h1>
+            </div>
+            <span id="sync-status" class="sync-pill">Mode hors-ligne sécurisé</span>
+        </header>
+
+        <main id="app-root"></main>
+    </div>
 
     <nav class="bottom-bar">
         <a href="#/modules" class="nav-item">Modules</a>
-        <a href="#/history" class="nav-item">Histo</a>
-        <a href="#/settings" class="nav-item">Paramètres</a>
+        <a href="#/history" class="nav-item">Historique</a>
+        <a href="#/settings" class="nav-item">Réglages</a>
     </nav>
 
     <div id="ai-panel" class="ai-panel glass-card hidden">
@@ -29,11 +38,11 @@
         </div>
         <div id="ai-chat" class="ai-chat"></div>
         <div class="ai-input-group">
-            <input type="text" id="ai-input" placeholder="Poser une question (ex: remise)...">
+            <input type="text" id="ai-input" placeholder="Question opérationnelle...">
             <button id="ai-send">Go</button>
         </div>
     </div>
-    <button id="fab-ai" class="fab-ai">?</button>
+    <button id="fab-ai" class="fab-ai">IA</button>
 
     <script src="js/store.js"></script>
     <script src="js/ai.js"></script>

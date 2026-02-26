@@ -1,37 +1,42 @@
 const Router = {
     routes: {
-        '#/modules': async () => {
-            const resp = await fetch('pages/modules.html');
-            return await resp.text();
-        },
-        '#/consolidation': async () => {
-            const resp = await fetch('pages/consolidation.html');
-            return await resp.text();
-        }
-        // Add other routes here following the same pattern
+        '#/modules': 'pages/modules.html',
+        '#/consolidation': 'pages/consolidation.html',
+        '#/history': 'pages/history.html',
+        '#/settings': 'pages/settings.html'
     },
-    
+
     async handleRoute() {
         const hash = window.location.hash || '#/modules';
         const root = document.getElementById('app-root');
-        
+
         try {
-            if (this.routes[hash]) {
-                root.innerHTML = await this.routes[hash]();
+            const page = this.routes[hash];
+            if (page) {
+                const resp = await fetch(page);
+                root.innerHTML = await resp.text();
                 this.executeScripts(root);
+                this.markActiveNav(hash);
             } else {
-                root.innerHTML = '<div style="padding: 20px;"><h2>Module en construction</h2><p>Mode Offline activé.</p></div>';
+                root.innerHTML = '<section class="page-wrap"><div class="glass-card"><h2>Module en construction</h2><p class="subtext">Ce module sera bientôt synchronisé au noyau offline.</p></div></section>';
+                this.markActiveNav('');
             }
-        } catch (e) {
-            root.innerHTML = '<div style="padding: 20px;"><h2>Erreur</h2><p>Impossible de charger le module.</p></div>';
+        } catch (error) {
+            root.innerHTML = '<section class="page-wrap"><div class="glass-card"><h2>Erreur</h2><p class="subtext">Impossible de charger le module hors-ligne.</p></div></section>';
         }
+    },
+
+    markActiveNav(hash) {
+        document.querySelectorAll('.nav-item').forEach((item) => {
+            item.classList.toggle('is-active', item.getAttribute('href') === hash);
+        });
     },
 
     executeScripts(element) {
         const scripts = element.querySelectorAll('script');
-        scripts.forEach(oldScript => {
+        scripts.forEach((oldScript) => {
             const newScript = document.createElement('script');
-            Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+            Array.from(oldScript.attributes).forEach((attr) => newScript.setAttribute(attr.name, attr.value));
             newScript.appendChild(document.createTextNode(oldScript.innerHTML));
             oldScript.parentNode.replaceChild(newScript, oldScript);
         });

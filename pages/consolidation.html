@@ -1,59 +1,79 @@
-<div style="padding: 20px;">
-    <h1>Consolidation</h1>
-    <p class="subtext">Session active: V1. Offline.</p>
-</div>
-
-<div style="padding: 0 20px;">
-    <div class="glass-card">
-        <h2 style="font-size:18px;">Charger SKU</h2>
-        <input type="text" id="scan-sku" placeholder="Scannez ou tapez SKU (auto-focus)...">
-        <button class="btn-primary" id="btn-add-sku">Ajouter</button>
-        
-        <ul id="sku-list" style="list-style:none; padding:0; margin-top:20px;"></ul>
-        <button class="btn-primary" id="btn-export-csv" style="margin-top:15px; background:#4B5563;">Exporter CSV</button>
+<section class="page-wrap">
+    <div class="glass-card" style="margin-bottom:16px;">
+        <div class="row-between">
+            <div>
+                <h2>Consolidation Offline</h2>
+                <p class="subtext">Session locale sécurisée. Les scans restent disponibles sans réseau.</p>
+            </div>
+            <strong id="total-moves">0 scan</strong>
+        </div>
     </div>
-</div>
+
+    <div class="glass-card">
+        <h3>Charger SKU</h3>
+        <input type="text" id="scan-sku" placeholder="Scannez ou tapez un SKU...">
+        <button class="btn-primary" id="btn-add-sku">Ajouter au lot</button>
+
+        <ul id="sku-list" class="list-reset" style="margin-top:16px;"></ul>
+        <button class="btn-primary" id="btn-export-csv" style="margin-top:14px; background:#4B5563;">Exporter CSV</button>
+    </div>
+</section>
 
 <script>
-    (function() {
+    (function () {
         const input = document.getElementById('scan-sku');
         const btnAdd = document.getElementById('btn-add-sku');
         const list = document.getElementById('sku-list');
         const btnCsv = document.getElementById('btn-export-csv');
+        const total = document.getElementById('total-moves');
 
-        // Autofocus
-        setTimeout(() => input.focus(), 300);
+        setTimeout(() => input.focus(), 250);
 
         async function loadList() {
             const moves = await Store.getAll('consolidation_moves');
             list.innerHTML = '';
-            moves.forEach(m => {
-                list.innerHTML += `<li style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between;">
-                    <span>${m.sku}</span> <span style="color:#3B82F6">Qte: 1</span>
+            total.textContent = `${moves.length} scan${moves.length > 1 ? 's' : ''}`;
+
+            moves.slice().reverse().forEach((m) => {
+                list.innerHTML += `<li style="padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1);" class="row-between">
+                    <div><strong>${m.sku}</strong><br><span class="subtext">${new Date(m.timestamp).toLocaleString()}</span></div>
+                    <span style="color:#3B82F6">Qte: ${m.qty}</span>
                 </li>`;
             });
         }
 
         async function addSku() {
-            const val = input.value.trim();
-            if(!val) return;
-            await Store.add('consolidation_moves', { sku: val, timestamp: Date.now() });
+            const val = input.value.trim().toUpperCase();
+            if (!val) {
+                return;
+            }
+
+            const payload = { sku: val, qty: 1, timestamp: Date.now(), module: 'consolidation' };
+            await Store.add('consolidation_moves', payload);
+            await Store.add('activity_log', { type: 'scan', message: `SKU ${val} ajouté`, timestamp: Date.now() });
             input.value = '';
             input.focus();
             loadList();
         }
 
         btnAdd.addEventListener('click', addSku);
-        input.addEventListener('keypress', (e) => { if(e.key === 'Enter') addSku(); });
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addSku();
+            }
+        });
 
         btnCsv.addEventListener('click', async () => {
             const moves = await Store.getAll('consolidation_moves');
-            let csvContent = "data:text/csv;charset=utf-8,SKU,Timestamp\\n";
-            moves.forEach(m => { csvContent += `${m.sku},${new Date(m.timestamp).toISOString()}\\n`; });
+            let csvContent = 'data:text/csv;charset=utf-8,SKU,Qty,Timestamp\n';
+            moves.forEach((m) => {
+                csvContent += `${m.sku},${m.qty},${new Date(m.timestamp).toISOString()}\n`;
+            });
+
             const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "consolidation_export.csv");
+            const link = document.createElement('a');
+            link.setAttribute('href', encodedUri);
+            link.setAttribute('download', 'consolidation_export.csv');
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);

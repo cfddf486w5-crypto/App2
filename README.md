@@ -1,13 +1,19 @@
-# DL WMS - Offline PWA
-Application WMS 100% hors-ligne.
-Structure iPhone-first, UI premium.
+# DL WMS Professional - Offline PWA
+Application WMS 100% hors-ligne avec interface iPhone + Windows.
+
+## Fonctionnalités clés
+- **Modules intégrés** : Consolidation, Historique, Réglages.
+- **Offline-first** : Service Worker + IndexedDB.
+- **Journal unifié** : toutes les actions importantes alimentent l'historique.
+- **UI responsive** : ergonomie mobile (iPhone) et desktop (Windows).
 
 ## Déploiement local
-1. Installez un serveur HTTP local (ex: `python -m http.server 8000` ou Live Server sur VSCode).
-2. Ouvrez `http://localhost:8000`
-3. L'app s'installe via le navigateur et fonctionne ensuite sans réseau (Service Worker + IndexedDB).
+1. Lancez un serveur HTTP local (`python -m http.server 8000`).
+2. Ouvrez `http://localhost:8000`.
+3. Installez l'application depuis le navigateur pour usage hors-ligne.
 
-## Structure
-- Les données sont dans `js/store.js` (IndexedDB).
-- Le routing se fait via `js/router.js`.
-- Le moteur IA est dans `js/ai.js`.
+## Architecture
+- `js/store.js` : accès IndexedDB (mouvements, réglages, journal).
+- `js/router.js` : routage hash vers les pages HTML.
+- `pages/*.html` : modules métier.
+- `sw.js` : cache offline et mise à jour des assets.
