@@ -3,20 +3,49 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Suivi de cancellation de commande</title>
+  <title>Centre de suivi des annulations de commandes</title>
   <link rel="stylesheet" href="css/theme.css" />
 </head>
 <body>
   <main class="container">
-    <header class="hero">
-      <p class="kicker">Service clientèle</p>
-      <h1>App de suivi de cancellation de commande</h1>
-      <p>Créer une demande, suivre son traitement et conserver l’archive finale.</p>
+    <header class="hero card">
+      <p class="kicker">Service clientèle • Opérations</p>
+      <h1>Centre de suivi des annulations de commandes</h1>
+      <p>Un espace unique pour enregistrer, suivre et archiver les demandes avec une vue claire de la charge en cours.</p>
+      <div class="pill-row">
+        <span class="pill">Historique centralisé</span>
+        <span class="pill">Progression par étapes</span>
+        <span class="pill">Mode hors-ligne</span>
+      </div>
     </header>
 
-    <section class="card">
-      <h2>Nouvelle demande</h2>
-      <form id="cancel-form" class="form-grid">
+    <section class="dashboard-grid">
+      <article class="stat-card">
+        <p class="label">Demandes totales</p>
+        <p id="statTotal" class="value">0</p>
+      </article>
+      <article class="stat-card">
+        <p class="label">En attente</p>
+        <p id="statPending" class="value">0</p>
+      </article>
+      <article class="stat-card">
+        <p class="label">En traitement</p>
+        <p id="statProgress" class="value">0</p>
+      </article>
+      <article class="stat-card">
+        <p class="label">Finalisées</p>
+        <p id="statDone" class="value">0</p>
+      </article>
+    </section>
+
+    <section class="card split">
+      <div>
+        <h2>Nouvelle demande</h2>
+        <p class="muted">Capturez toutes les informations clés pour un traitement rapide et une meilleure traçabilité.</p>
+      </div>
+      <p class="helper">SLA cible: <strong>2h</strong> (Urgente), <strong>4h</strong> (Élevée), <strong>24h</strong> (Normale)</p>
+
+      <form id="cancel-form" class="form-grid full">
         <label>
           Numéro de commande
           <input type="text" id="orderNumber" required placeholder="Ex: CMD-45871" />
@@ -40,6 +69,15 @@
         </label>
 
         <label>
+          Priorité
+          <select id="priority" required>
+            <option value="Normale">Normale</option>
+            <option value="Élevée">Élevée</option>
+            <option value="Urgente">Urgente</option>
+          </select>
+        </label>
+
+        <label>
           Raison de la cancellation
           <select id="reason" required>
             <option value="">Sélectionner...</option>
@@ -53,6 +91,11 @@
           <textarea id="otherReason" rows="3" placeholder="Écrire la raison..."></textarea>
         </label>
 
+        <label class="full">
+          Commentaires internes (optionnel)
+          <textarea id="internalNotes" rows="3" placeholder="Contexte complémentaire pour l'équipe..."></textarea>
+        </label>
+
         <button type="submit" class="primary full">Envoyer la demande</button>
       </form>
     </section>
@@ -61,6 +104,21 @@
       <div class="list-head">
         <h2>Archives de cancellation</h2>
         <span id="archiveCount" class="badge">0 demande</span>
+      </div>
+      <div class="toolbar">
+        <label>
+          Statut
+          <select id="statusFilter">
+            <option value="all">Tous</option>
+            <option value="pending">En attente</option>
+            <option value="progress">En traitement</option>
+            <option value="done">Finalisées</option>
+          </select>
+        </label>
+        <label>
+          Recherche
+          <input type="search" id="searchInput" placeholder="Commande, client, site..." />
+        </label>
       </div>
       <div id="archiveList" class="stack"></div>
     </section>
@@ -74,6 +132,7 @@
       </div>
       <p class="meta"></p>
       <p class="reason"></p>
+      <p class="notes"></p>
       <ul class="timeline"></ul>
       <div class="actions"></div>
     </article>
